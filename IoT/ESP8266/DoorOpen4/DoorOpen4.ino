@@ -36,16 +36,6 @@
 #include "MyConfigLocal.h"  
 
 
-
-// Configuración servidor1
-const char* host = "maker.ifttt.com";
-const char* apiKey = "OaA9REbZgbOaXt9TMgNh0";
-const int httpPort = 80;
-
-// Configuración servidor2
-const int port = 80;
-const char* host2 = "192.168.1.1"; // ip or dns
-
 const int timenOutServer = 5000;
 
 
@@ -83,24 +73,31 @@ void changeDoorStatus() {
 }
 
 
-void conectaWifi() {
+//void conectaWifi() 
+boolean conectaWifi() {
     
     Serial.println();
     Serial.print("Connecting to ");
     Serial.println(ssid);
     
     WiFi.begin(ssid, password);
-    
+
+    unsigned long timeout = millis();
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
+      if (millis() - timeout > timenOutServer) {
+        Serial.println(">>> Client Timeout !");
+        return false;
+      }
     }
-  
+   
     Serial.println("");
     Serial.println("WiFi connected");  
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
     Serial.println();
+    return true;
 }
 
 void setup() {
@@ -113,7 +110,10 @@ void setup() {
     Serial.println("Preparing the Door Status Monitor project...");
     Serial.println("La puerta debe estar cerrada");
 
-    conectaWifi();
+    if (conectaWifi()== false){
+      Serial.println("NO FUNCIONA EL WIFI");
+    }
+    
         
     Serial.println("Preparando pines PULL_UP o no ");
     pinMode(pin, INPUT);
