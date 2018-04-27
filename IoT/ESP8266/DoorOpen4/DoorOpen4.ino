@@ -32,11 +32,19 @@
    Se puede substituir por las variables respectivas
    const char* ssid = "MY_SSID";
    const char* password = "MI_CLAVE";
+   
+   const char* host = "maker.ifttt.com";
+   const char* apiKey = "KEY";
+   const int httpPort = 80;
+
+   // Configuración servidor2
+   const int port = 80;
+   const char* host2 = "192.168.1.1"; // ip or dns
 */
 #include "MyConfigLocal.h"  
 
 
-const int timenOutServer = 5000;
+const int timenOutServer = 10000;
 
 
 //int pin = 12;  //GPIO12
@@ -87,7 +95,7 @@ boolean conectaWifi() {
       delay(500);
       Serial.print(".");
       if (millis() - timeout > timenOutServer) {
-        Serial.println(">>> Client Timeout !");
+        Serial.println(">>> WIFI Timeout !");
         return false;
       }
     }
@@ -125,25 +133,26 @@ void setup() {
 }
 
 
-void enviarServidor() {
+void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, String path) {
+    
     Serial.print("connecting to ");
-    Serial.println(host);
+    Serial.println(myHost);
     
     WiFiClient client;
     // const int httpPort = 80;
-    if (!client.connect(host, httpPort)) {
-      Serial.println("connection failed");
+    if (!client.connect(myHost, myHttpPort)) {
+      Serial.println("connection server failed");
       return;
     }
 
-    String url = "/trigger/Puerta_estado/with/key/";
-    url += apiKey;
+    String url = path;
+    url += myApiKey;
     url += "?value1=" + door_state;
     
     Serial.print("Requesting URL: ");
     Serial.println(url);
     client.print(String("POST ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + host + "\r\n" + 
+                 "Host: " + myHost + "\r\n" + 
                  "Content-Type: application/x-www-form- encoded\r\n" + 
                  "Content-Length: 13\r\n\r\n" +
                  //client.print(postData.length());
@@ -175,11 +184,11 @@ void enviarServidor() {
 
 void enviarServidor1() {
     Serial.print("connecting to ");
-    Serial.println(host);
+    Serial.println(host1);
     
     WiFiClient client;
     // const int httpPort = 80;
-    if (!client.connect(host, httpPort)) {
+    if (!client.connect(host1, httpPort1)) {
       Serial.println("connection failed");
       return;
     }
@@ -191,7 +200,7 @@ void enviarServidor1() {
     Serial.print("Requesting URL: ");
     Serial.println(url);
     client.print(String("POST ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + host + "\r\n" + 
+                 "Host: " + host1 + "\r\n" + 
                  "Content-Type: application/x-www-form- encoded\r\n" + 
                  "Content-Length: 13\r\n\r\n" +
                  "value1=" + door_state + "\r\n");
@@ -209,7 +218,7 @@ void enviarServidor2() {
   // Use WiFiClient class to create TCP connections
   WiFiClient client2;
 
-  if (!client2.connect(host, port)) {
+  if (!client2.connect(host1, httpPort1)) {
     Serial.println("connection failed");
     Serial.println("wait 5 sec...");
     delay(5000);
@@ -235,12 +244,12 @@ void enviarServidor3() {
   //++value;
 
   Serial.print("connecting to ");
-  Serial.println(host);
+  Serial.println(host1);
 
   // Use WiFiClient class to create TCP connections
   WiFiClient client;
   const int httpPort = 80;
-  if (!client.connect(host, httpPort)) {
+  if (!client.connect(host1, httpPort)) {
     Serial.println("connection failed");
     return;
   }
@@ -258,7 +267,7 @@ void enviarServidor3() {
 
   // This will send the request to the server
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
+               "Host: " + host1 + "\r\n" +
                "Connection: close\r\n\r\n");
   unsigned long timeout = millis();
   while (client.available() == 0) {
@@ -283,7 +292,7 @@ void enviarServidor3() {
 void loop() {
 
       if(flag){
-          enviarServidor();
+          enviarServidor(host1, httpPort1, apiKey, path1);
           flag = false;
       }  
       delay(10);
