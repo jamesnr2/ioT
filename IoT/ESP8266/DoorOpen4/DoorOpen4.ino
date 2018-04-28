@@ -133,7 +133,9 @@ void setup() {
 }
 
 
-void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, String path) {
+void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, String path, String modo) {
+    
+    String url = path;
     
     Serial.print("connecting to ");
     Serial.println(myHost);
@@ -145,21 +147,41 @@ void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, St
       return;
     }
 
-    String url = path;
-    url += myApiKey;
-    url += "?value1=" + door_state;
+    if (modo=="post"){
+      
+      url += myApiKey;
+      url += "?value1=" + door_state;
+      
+      Serial.print("Requesting URL: ");
+      Serial.println(url);
+      client.print(String("POST ") + url + " HTTP/1.1\r\n" +
+                   "Host: " + myHost + "\r\n" + 
+                   "Content-Type: application/x-www-form- encoded\r\n" + 
+                   "Content-Length: 13\r\n\r\n" +
+                   //client.print(postData.length());
+                   "value1=" + door_state + "\r\n" +                   
+                   "Connection: close\r\n\r\n");
+      // client.stop(); Si lo activas reinica el modulo
+    }
+    if (modo=="put"){
+      //url = path;
+      //url += myApiKey;
+      //url += "?value1=" + door_state;
+      url += door_state;
+      
+      Serial.print("Requesting URL: ");
+      Serial.println(url);
+      client.print(String("PUT ") + url + " HTTP/1.1\r\n" +
+                   "Host: " + myHost + "\r\n" + 
+                   "Content-Type: application/x-www-form-urlencoded\r\n" + 
+                   "x-api-key: " + myApiKey + "\r\n" +  // "x-api-key: TU_KEY"
+                   "Content-Length: 13\r\n\r\n" +
+                   //client.print(postData.length());
+                   "nombre=" + door_state + "\r\n" +                   
+                   "Connection: close\r\n\r\n");
+      // client.stop(); Si lo activas reinica el modulo
+    }
     
-    Serial.print("Requesting URL: ");
-    Serial.println(url);
-    client.print(String("POST ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + myHost + "\r\n" + 
-                 "Content-Type: application/x-www-form- encoded\r\n" + 
-                 "Content-Length: 13\r\n\r\n" +
-                 //client.print(postData.length());
-                 "value1=" + door_state + "\r\n" +                   
-                 "Connection: close\r\n\r\n");
-    //client.stop();
-
     unsigned long timeout = millis();
     while (client.available() == 0) {
       if (millis() - timeout > timenOutServer) {
@@ -168,7 +190,10 @@ void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, St
         return;
       }
     }
-  
+
+    Serial.println();
+    Serial.println("Recibiendo Datos");
+    Serial.println("");
     // Read all the lines of the reply from server and print them to Serial
     while (client.available()) {
       String line = client.readStringUntil('\r');
@@ -177,6 +202,7 @@ void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, St
   
     Serial.println();
     Serial.println("closing connection");
+    Serial.println();
         
 }
 
@@ -194,7 +220,7 @@ void enviarServidor1() {
     }
 
     String url = "/trigger/Puerta_estado/with/key/";
-    url += apiKey;
+    url += apiKey1;
     url += "?value1=" + door_state;
     
     Serial.print("Requesting URL: ");
@@ -292,7 +318,8 @@ void enviarServidor3() {
 void loop() {
 
       if(flag){
-          enviarServidor(host1, httpPort1, apiKey, path1);
+          enviarServidor(host1, httpPort1, apiKey1, path1,"post");
+          enviarServidor(host2, httpPort2, apiKey2, path2,"put");
           flag = false;
       }  
       delay(10);
