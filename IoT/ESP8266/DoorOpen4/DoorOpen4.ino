@@ -1,4 +1,9 @@
 /*
+ Control de apertura por sensor con ESP8266
+ Configurable:
+  * WiFi
+  * Request a web 
+   
  Created by Rui Santos
  Modificado por jamesnr2, sin depurar
  Necesita de una resistencia para conectar a un pin GPIO
