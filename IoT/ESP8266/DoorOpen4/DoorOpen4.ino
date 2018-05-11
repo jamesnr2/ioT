@@ -1,5 +1,7 @@
 /*
  Created by Rui Santos
+ Modificado por jamesnr2, sin depurar
+ Necesita de una resistencia para conectar a un pin GPIO
  
  All the resources for this project:
  http://randomnerdtutorials.com/
@@ -8,14 +10,14 @@
  ARDUINO:
  https://polaridad.es/programar-un-modulo-wifi-esp8266-desde-el-ide-de-arduino/
 
- 8266 
+ 8266:
  http://www.instructables.com/id/ESP8266-Doorwindow-Sensor-With-SMS-Alarm/
 
- Pull_UP
+ Pull_UP:
  https://www.arduino.cc/reference/en/language/variables/constants/constants/
  https://miarduinounotieneunblog.blogspot.com.es/2015/12/conexiones-pull-up-y-pull-down.html [ARDUINO]
 
- INTERRUPCIONES.
+ INTERRUPCIONES:
  https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
  
  PINES: 
@@ -53,8 +55,7 @@ int pin = D2;  //GPIO4
 
 volatile int state = false;
 volatile int flag = false;
-// const char* door_state = "closed";
-String door_state = "closed";
+String door_state = "closed";  // Inicialmente la puerta debe estar cerrada
 
 unsigned long previousMillis = 0; 
 const long interval = 3000;
@@ -80,8 +81,6 @@ void changeDoorStatus() {
     
 }
 
-
-//void conectaWifi() 
 boolean conectaWifi() {
     
     Serial.println();
@@ -123,18 +122,21 @@ void setup() {
     }
     
         
-    Serial.println("Preparando pines PULL_UP o no ");
+    //Serial.println("Preparando pines PULL_UP o no ");
+    //pinMode(pin, INPUT_PULLUP);   
     pinMode(pin, INPUT);
-    //pinMode(pin, INPUT_PULLUP);
+    
+    //Configuramos pin de interrupcion y el evento de llamada
     attachInterrupt(digitalPinToInterrupt(pin), changeDoorStatus, CHANGE);
-    Serial.println("Pines PULL_UP listos");
+    //Serial.println("Pines PULL_UP listos");
     
 
 }
 
 
 void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, String path, String modo) {
-    
+
+ // 
     String url = path;
     
     Serial.print("connecting to ");
@@ -205,115 +207,6 @@ void enviarServidor(const char* myHost, int myHttpPort, const char* myApiKey, St
     Serial.println();
         
 }
-
-
-
-void enviarServidor1() {
-    Serial.print("connecting to ");
-    Serial.println(host1);
-    
-    WiFiClient client;
-    // const int httpPort = 80;
-    if (!client.connect(host1, httpPort1)) {
-      Serial.println("connection failed");
-      return;
-    }
-
-    String url = "/trigger/Puerta_estado/with/key/";
-    url += apiKey1;
-    url += "?value1=" + door_state;
-    
-    Serial.print("Requesting URL: ");
-    Serial.println(url);
-    client.print(String("POST ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + host1 + "\r\n" + 
-                 "Content-Type: application/x-www-form- encoded\r\n" + 
-                 "Content-Length: 13\r\n\r\n" +
-                 "value1=" + door_state + "\r\n");
-    
-}
-
-
-void enviarServidor2() {
-// Debe estar dentro del loop
-// https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WiFi/examples/WiFiClientBasic/WiFiClientBasic.ino
-
-  Serial.print("connecting to ");
-  Serial.println(host2);
-
-  // Use WiFiClient class to create TCP connections
-  WiFiClient client2;
-
-  if (!client2.connect(host1, httpPort1)) {
-    Serial.println("connection failed");
-    Serial.println("wait 5 sec...");
-    delay(5000);
-    return;
-  }
-
-  // This will send the request to the server
-  client2.println("Send this data to server");
-
-  //read back one line from server
-  String line = client2.readStringUntil('\r');
-  Serial.println(line);
-
-  Serial.println("closing connection");
-  client2.stop();
-
-  Serial.println("wait 5 sec...");
-  delay(5000);
-}
-
-void enviarServidor3() {
-  delay(5000);
-  //++value;
-
-  Serial.print("connecting to ");
-  Serial.println(host1);
-
-  // Use WiFiClient class to create TCP connections
-  WiFiClient client;
-  const int httpPort = 80;
-  if (!client.connect(host1, httpPort)) {
-    Serial.println("connection failed");
-    return;
-  }
-
-  // We now create a URI for the request
-  String url = "/input/";
-  //url += streamId;
-  url += "?private_key=";
-  //url += privateKey;
-  url += "&value=";
-  //url += value;
-
-  Serial.print("Requesting URL: ");
-  Serial.println(url);
-
-  // This will send the request to the server
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host1 + "\r\n" +
-               "Connection: close\r\n\r\n");
-  unsigned long timeout = millis();
-  while (client.available() == 0) {
-    if (millis() - timeout > 5000) {
-      Serial.println(">>> Client Timeout !");
-      client.stop();
-      return;
-    }
-  }
-
-  // Read all the lines of the reply from server and print them to Serial
-  while (client.available()) {
-    String line = client.readStringUntil('\r');
-    Serial.print(line);
-  }
-
-  Serial.println();
-  Serial.println("closing connection");
-}
-
 
 void loop() {
 
